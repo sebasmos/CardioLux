@@ -1,139 +1,195 @@
 import numpy as np
-import biosppy as Bp
-import scipy as sp
-import signal as sg
+from scipy.misc import electrocardiogram
+from scipy import signal
 import scipy.integrate as integrate
-import pywt
+import scipy.fftpack as ff
+import matplotlib.pyplot as plt
 
-'''Extract ECG Features with BioSppy
-@Misc{,
-  author = {Carlos Carreiras and Ana Priscila Alves and Andr\'{e} Louren\c{c}o and Filipe Canento and Hugo Silva and Ana Fred and others},
-  title = {{BioSPPy}: Biosignal Processing in {Python}},
-  year = {2015--},
-  url = "https://github.com/PIA-Group/BioSPPy/",
-  note = {[Online; accessed <today>]}
-}'''
-def ECG_Extraction_time(data,Fs):
-    Qrs_Interval = 0.094 
-    Look_Sample = int((Fs*Qrs_Interval)/2);  
-    ceros = np.zeros(Look_Sample)
-    rpeaks, = Bp.ecg.hamilton_segmenter(data,Fs)
-    rpeaks, = Bp.ecg.correct_rpeaks(data,rpeaks,Fs,0.05)
-    template, rpeaks = Bp.ecg.extract_heartbeats(data,rpeaks,Fs,0.2,0.4)
-    hr_i, hr = Bp.tools.get_heart_rate(rpeaks,Fs,True,3)
-    size_signal = len(data)
-    T = (size_signal-1)/Fs
-    t = np.linspace(0,T,size_signal,True)
-    t_hr = t[hr_i]
-    t_temp = np.linspace(-0.2,0.4,template.shape[1],False)
-    hr = np.mean(hr) #Heart rate (bpm)
-    t_hr = np.mean(t_hr) #Heart rate (second)
-    Rr_Region = []
-    for i in range(0,len(t_temp)-1):
-        Rr_Region.append(t_temp[i+1]-t_temp[i])    
-    Rr_interval = np.mean(Rr_Region) #RR Interval (second)
-    #QRS Interval------------------------------------------------------------------------
-    data_Shifted = np.concatenate((ceros,data,ceros))
-    R_loc = rpeaks+Look_Sample*np.ones(len(rpeaks))
-    Q_peak = []
-    S_peak = []
-    Q_idx = []
-    S_idx = []
-    Q_i = []
-    S_i = []
-    for i in range(0,len(R_loc)):
-        init = int(R_loc[i]-Look_Sample)
-        Final = int(R_loc[i])
-        Q_peak.append(np.min(data_Shifted[init:Final]))
-        Q_idx.append(np.min(np.array(np.where(data_Shifted[init:Final] == Q_peak[i])[0])))
-    
-    for i in range(0,len(R_loc)):
-        init = int(R_loc[i])
-        Final = int(R_loc[i]+Look_Sample)
-        S_peak.append(np.min(data_Shifted[init:Final]))
-        S_idx.append(np.min(np.array(np.where(data_Shifted[init:Final] == S_peak[i])[0])))
- 
+'''
+1. r_peak_mean: Pico R
+2. h_rate: Heart rate (bpm)
+3. rr_interval: RR interval
+4. qrs_Interval: QRS interval
+5. q_peak: Q peak
+6. s_peak: S peak 
+'''
 
-    for i in range(0,len(R_loc)):
-        S_i.append(R_loc[i]+S_idx[i]-1)
-        Q_i.append(R_loc[i]-Look_Sample+Q_idx[i]-1)
 
-    Q_loc = Q_i-Look_Sample*np.ones(len(Q_i))
-    S_loc = S_i-Look_Sample*np.ones(len(S_i))
-    Qrs_Region = S_loc-Q_loc 
-    Qrs_Interval = np.mean(Qrs_Region/Fs) #QRS_interval
-    #Q and S peak
-    Q_peak = np.mean(Q_peak)
-    S_peak = np.mean(S_peak)
+def qrs_features(data, fs):
+    min_peaks = 0.5
 
-    #Energy of signal
-    Energy_aux = ((np.abs(data))**2)
-    Energy_aux = Energy_aux/np.sum(Energy_aux)
-    Energy = integrate.simps(Energy_aux,t) #Energy Signal
-    #Centroid 
-    t_e = np.dot(t,Energy_aux)
-    if Energy == 0 or t_e == 0:
-        Centroid = 0
-    else:
-        Centroid = t_e/Energy
-    #auto-correlate
-    data_aux = data/np.sum(data)
-    Corr = float(np.correlate(data_aux,data_aux))
+    # detrend data
+    data_detrend = detrend_data(data, 10)
 
-    mean_diff = np.mean(np.diff(data))
-    # Entropy 
-    std = np.std(data)
-    if std == 0:
-        Entropy = 0
-    mean = np.mean(data)
-    m = np.min(data)
-    if np.max(data)<0:
-        M = -np.max(data)
-    else:
-        M = np.max(data)
-    
-    probability = np.linspace(m,M,len(data))
-    gauss_pdf = sp.stats.norm.pdf(probability, mean, std)
-    gauss = gauss_pdf/np.sum(gauss_pdf)
-    if np.sum(gauss) == 0:
-        Entropy = 0
+    # Find R peaks locations
+    peaks, _ = signal.find_peaks(data_detrend, min_peaks)
+    r_peaks = data_detrend[peaks]
+    r_peak_mean = np.mean(r_peaks)  # 1. R peak
 
-    gauss = gauss[np.where(gauss != 0)]
-    Entropy = -np.sum(gauss*np.log2(gauss))/np.log2(len(data))
+    # time
+    step = len(data_detrend) / fs
+    t = np.linspace(0, step, len(data_detrend), True)
 
-    return hr, t_hr,Rr_interval,Q_peak,S_peak,Qrs_Interval, Energy,Centroid,Corr, mean_diff, Entropy
+    # Hearth rate
+    h_rate = (len(peaks)/t[len(t)-1])*60  # 2. Hearth rate (bpm)
 
-def Frecuency_Features(Data, Fs):
+    # RR Interval
+    t_peaks = t[peaks]
+    t_diff = []
+    for i in range(1, len(t_peaks)):
+        diff_t = t_peaks[i]-t_peaks[i-1]
+        t_diff.append(diff_t)
 
-    #Espectral density and Espectral Entropy 
-    Espectral_Entropy = []
-    _, Psd_aux = sp.signal.periodogram(Data,Fs) #Espectral density
-    Psd = np.mean(Psd_aux)
-    for i in range(0,len(Psd_aux)):
-        Espectral_Entropy.append(Psd_aux[i]/np.sum(Psd_aux))
-    E_h=-np.sum(Espectral_Entropy*np.log10(Espectral_Entropy)) #Espectral Entropy 
-    return Psd, E_h 
+    rr_interval = np.mean(np.array(t_diff))  # 3. RR interval (seconds)
 
-def COSen(Data, m, r, Fs):
-    x1 = np.matrix(np.zeros(m-1))
-    x2 = np.matrix(np.zeros(m))
-    N = len(Data)
-    for i in range(0,N-m):
-        x1 = np.vstack([x1, Data[i:i+m-1]])
-        x2 = np.vstack([x2, Data[i:i+m]])
-    x1 = np.delete(x1,0,0)
-    x2 = np.delete(x2,0,0)
-    return x2
+    # QRS Interval
+    qrs_interval = 0.094
+    look_sample = int((fs * qrs_interval) / 2)
+    zeros = np.zeros(look_sample)
+    data_concatenated = np.concatenate((zeros, data_detrend, zeros))
+    r_loc = peaks + look_sample*np.ones(len(peaks))
+    q_peak = []
+    s_peak = []
+    q_idx = []
+    s_idx = []
+    q_i = []
+    s_i = []
+    for i in range(0, len(r_loc)):
+        init = int(r_loc[i] - look_sample)
+        final = int(r_loc[i])
+        q_peak.append(np.min(data_concatenated[init:final]))
+        q_idx.append(np.min(np.array(np.where(data_concatenated[init:final] == q_peak[i])[0])))
 
-def WaveletFeat(Data):
-    ''' Wavelet extraction process is advanced  for trying to describe Premature
-    Ventricular Complex Arrhythmia, seems like the best results were verified
-    with db2 wavelet mother'''
-    print("WaveletFeat seems to be workig")
+    for i in range(0, len(r_loc)):
+        init = int(r_loc[i])
+        final = int(r_loc[i] + look_sample)
+        s_peak.append(np.min(data_concatenated[init:final]))
+        s_idx.append(np.min(np.array(np.where(data_concatenated[init:final] == s_peak[i])[0])))
+
+    for i in range(0, len(r_loc)):
+        s_i.append(r_loc[i] + s_idx[i] - 1)
+        q_i.append(r_loc[i] - look_sample + q_idx[i] - 1)
+
+    q_loc = q_i - look_sample * np.ones(len(q_i))
+    s_loc = s_i - look_sample * np.ones(len(s_i))
+    qrs_region = s_loc - q_loc
+    qrs_interval = np.mean(qrs_region/fs)  # 4. QRS_interval
+
+    # Q and S peak
+    q_peak = np.mean(q_peak)  # 5. Q peak
+    s_peak = np.mean(s_peak)  # 6. S peak
+
+    return r_peak_mean, h_rate, rr_interval, qrs_interval, q_peak, s_peak
+
+
+'''
+1. Energy: Signal Energy
+2. Corr: Autocorrelation 
+3. Ent_Shannon: Shannon Entropy
+'''
+
+
+def time_features(data, fs):
+    data = data/sum(abs(data))
+    data = detrend_data(data, 10)
+    step = len(data) / fs
+    t = np.linspace(0, step, len(data), True)
+
+    # Energy
+    energy_aux = ((np.abs(data)) ** 2)
+    energy_aux = energy_aux / np.sum(energy_aux)
+    energy = integrate.simps(energy_aux, t)  # 1. Signal Energy
+
+    # Autocorrelation
+    corr = float(np.correlate(data, data))  # 2. Autocorrelation
+
+    # Shannon Entropy
+    pro = [np.mean(data == valor) for valor in set(data)]
+    ent_shannon = sum(-q*np.log2(q) for q in pro)  # 3. Shannon Entropy
+
+    # Centroid
+    centroid = np.dot(t, energy_aux)/sum(energy_aux)  # 4. Centroid
+
+    return energy, corr, ent_shannon, centroid
+
+
+'''
+1. psd: Spectral density
+2. ent_esp: Spectral Entropy
+3. cent_f: Spectral Centroid
+'''
+
+
+def frecuency_features(data, fs):
+
+    spectral_entropy = []
+    _, psd_aux = signal.periodogram(data, fs)  # 1. Spectral density
+    psd = np.mean(psd_aux)
+    for i in range(0, len(psd_aux)):
+        spectral_entropy.append(psd_aux[i]/np.sum(psd_aux))
+    ent_esp = -np.sum(spectral_entropy*np.log10(spectral_entropy))  # 2. Spectral Entropy
+
+    # Spectral Centroid
+    data_f = ff.fft(data)
+    data_f = data_f[0:round(len(data_f)/2)]
+    f = ff.rfftfreq(len(data), 1/fs)
+    f = f[0:round(len(f)/2)]
+    cent_f = np.dot(f, abs(data_f))/sum(abs(data_f))  # 3. Spectral Centroid
+
+    return psd, ent_esp, cent_f
+
+
+'''
+Return the Coefficient of Sample Entropy CosEn
+Input: 
+    data: Signal
+    m: length of sequences to be compared 
+    r: tolerance 
+Output: 
+    cosen: CosEn
+'''
+
+
+def COSen(data, m):
+    cosen = 0
+    n = len(data)
+    b1 = 0
+    b2 = 0
+    r = 0.2*np.std(data)
+    # Compute b1
+    aux1 = np.array([data[i: i + m]for i in range(n-m)])
+    aux2 = np.array([data[i: i + m] for i in range(n-m+1)])
+
+    b1 = np.sum([np.sum(np.abs(i-aux2).max(axis=1) <= r)-1 for i in aux1])
+
+    # Compute b2
+    m = m+1
+    aux3 = np.array([data[i: i+m] for i in range(n-m+1)])
+    b2 = np.sum([np.sum(np.abs(i-aux3).max(axis=1) <= r)-1 for i in aux3])
+
+    # Compute COSen
+    cosen = -np.log(b2/b1) - np.log(2*r) - np.log(np.mean(data))
+    return cosen
+
+
+def detrend_data(data, deg):
+    detrend = [0]*deg
+    for i in range(deg, len(data)-deg):
+        diff = data[i-deg:i+deg]
+        diff = sum(diff)/len(diff)
+        detrend.append(data[i]-diff)
+    return np.array(detrend+[0]*deg)
+
+
+'''
+PRUEBAS
+'''
 
 fs = 360
-y = sp.misc.electrocardiogram()
-x1 = COSen(y,100, 30,360)
-y = np.matrix(np.zeros(10))
-print(len(x1))
-print(type(x1))
+y = electrocardiogram()
+y_filtered = signal.savgol_filter(y, 11, 3)
+c = COSen(y, 30, 1)
+print(c)
+
+'''#plt.plot(y_detrend)
+#plt.show()'''

@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.signal import butter, lfilter
 from scipy import stats
+from scipy import signal
 #from Ejemplo import WaveletFeat
 
 def detect_peaks(ecg_measurements,signal_frequency,gain):
@@ -68,12 +69,13 @@ def detect_peaks(ecg_measurements,signal_frequency,gain):
 
 
         # Measurements filtering - 0-15 Hz band pass filter.
+        fitered_Savitzky_Golay = signal.savgol_filter(ecg_measurements, 11, 3)
         filtered_ecg_measurements = bandpass_filter(ecg_measurements, lowcut=filter_lowcut, highcut=filter_highcut, signal_freq=signal_frequency, filter_order=filter_order)
 
-        filtered_ecg_measurements[:5] = filtered_ecg_measurements[5]
+        fitered_Savitzky_Golay[:5] = fitered_Savitzky_Golay[5]
 
         # Derivative - provides QRS slope information.
-        differentiated_ecg_measurements = np.ediff1d(filtered_ecg_measurements)
+        differentiated_ecg_measurements = np.ediff1d(fitered_Savitzky_Golay)
 
         # Squaring - intensifies values received in derivative.
         squared_ecg_measurements = differentiated_ecg_measurements ** 2

@@ -13,10 +13,10 @@ def run_12ECG_classifier(data,header_data,classes,model):
     current_score = np.zeros(num_classes)
 
     # Use your classifier here to obtain a label and score for each class. 
-    features=np.asarray(get_12ECG_features(data,header_data))
+    #features = np.asarray(get_12ECG_features(data,header_data))
     features_v2 = np.asarray(get_12ECG_features_adding(data,header_data))
     feats_reshape = features.reshape(1,-1)
-    print(features_v2.reshape(1,-1))
+    #print(features_v2.reshape(1,-1))
     label = model.predict(feats_reshape)
     score = model.predict_proba(feats_reshape)
 

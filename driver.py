@@ -82,7 +82,7 @@ if __name__ == '__main__':
         print('    {}/{}...'.format(i+1, num_files))
         tmp_input_file = os.path.join(input_directory,f)
         data,header_data = load_challenge_data(tmp_input_file)
-        current_label, current_score = run_12ECG_classifier(data,header_data,classes, model)
+        current_label, current_score = run_12ECG_classifier(data,header_data, classes, model)
         # Save results.
         save_challenge_predictions(output_directory,f,current_score,current_label,classes)
 
