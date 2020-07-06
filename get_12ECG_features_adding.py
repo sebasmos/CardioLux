@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.signal import butter, lfilter
 from scipy import stats
+import pywt
 #from Ejemplo import WaveletFeat
 
 def detect_peaks(ecg_measurements,signal_frequency,gain):
@@ -69,7 +70,7 @@ def detect_peaks(ecg_measurements,signal_frequency,gain):
 
         # Measurements filtering - 0-15 Hz band pass filter.
         filtered_ecg_measurements = bandpass_filter(ecg_measurements, lowcut=filter_lowcut, highcut=filter_highcut, signal_freq=signal_frequency, filter_order=filter_order)
-
+        ## Add new filters 
         filtered_ecg_measurements[:5] = filtered_ecg_measurements[5]
 
         # Derivative - provides QRS slope information.
@@ -139,9 +140,22 @@ def findpeaks(data, spacing=1, limit=None):
         if limit is not None:
             ind = ind[data[ind] > limit]
         return ind
+def WaveletFeat(ecg_measurements,signal_frequency,gain):
+    ''' Wavelet extraction process is advanced  for trying to describe Premature
+    Ventricular Complex Arrhythmia, seems like the best results were verified
+    with db2 wavelet mother'''
+    cA, cD = pywt.dwt(ecg_measurements,'db2')
+    
+    print("1. Wavelet features are: ", cA[1:5])
+    
+    wavelet = pywt.Wavelet('db2')
+    
+    phi, psi, x = wavelet.wavefun(level=5)
+    
+    return gain*2    
 
 
-def get_12ECG_features(data, header_data):
+def get_12ECG_features_adding(data, header_data):
 
     tmp_hea = header_data[0].split(' ')
     ptID = tmp_hea[0]
@@ -172,7 +186,10 @@ def get_12ECG_features(data, header_data):
     
 #   We are only using data from lead1
     peaks,idx = detect_peaks(data[0],sample_Fs,gain_lead[0])
-   
+ 
+#   Wavelet feature extraction
+    wavet_feat = WaveletFeat(data[0],sample_Fs,gain_lead[0])
+
 #   mean
     mean_RR = np.mean(idx/sample_Fs*1000)
     mean_Peaks = np.mean(peaks*gain_lead[0])
