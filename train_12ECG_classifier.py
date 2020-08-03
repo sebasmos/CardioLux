@@ -6,6 +6,19 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from get_12ECG_features import get_12ECG_features
 
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+from keras.models import Sequential
+from keras.layers import Conv1D, LSTM, Dense, Dropout, TimeDistributed
+from keras.optimizers import Adam
+
+import matplotlib.pyplot as plt
+
 def train_12ECG_classifier(input_directory, output_directory):
     # Load data.
     print('Loading data...')
@@ -16,8 +29,11 @@ def train_12ECG_classifier(input_directory, output_directory):
         if not f.lower().startswith('.') and f.lower().endswith('hea') and os.path.isfile(g):
             header_files.append(g)
 
+    # get_classes determines 9 unique classes for the entire
+    # annotated dataset
     classes = get_classes(input_directory, header_files)
     num_classes = len(classes)
+    
     num_files = len(header_files)
     recordings = list()
     headers = list()
@@ -29,6 +45,7 @@ def train_12ECG_classifier(input_directory, output_directory):
 
     # Train model.
     print('Training model...')
+    
 
     features = list()
     labels = list()
@@ -40,6 +57,7 @@ def train_12ECG_classifier(input_directory, output_directory):
         tmp = get_12ECG_features(recording, header)
         features.append(tmp)
 
+    #hot encoding for applying DL
         for l in header:
             if l.startswith('#Dx:'):
                 labels_act = np.zeros(num_classes)
@@ -74,6 +92,8 @@ def load_challenge_data(header_file):
     mat_file = header_file.replace('.hea', '.mat')
     x = loadmat(mat_file)
     recording = np.asarray(x['val'], dtype=np.float64)
+    # For testing: 
+    # numpy.savetxt("A0001.csv",recording, delimiter=",")
     return recording, header
 
 # Find unique classes.
