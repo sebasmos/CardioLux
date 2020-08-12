@@ -25,8 +25,9 @@ def run_12ECG_classifier(data,header_data, loaded_model):
 def load_12ECG_model(input_directory):
     # load the model from disk 
     f_out='finalized_model.sav'
+    
     filename = os.path.join(input_directory,f_out)
 
     loaded_model = joblib.load(filename)
-
+    #model = load_model('saved_model.sav')
     return loaded_model
