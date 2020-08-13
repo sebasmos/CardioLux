@@ -56,8 +56,14 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     for i in range(num_files):
         recording = recordings[i]
         header = headers[i]
-
+        # 
+        
+        #tmp = get_12ECG_features_num(recording, header,n)
         tmp = get_12ECG_features(recording, header)
+
+        # features containing set-up values: 
+        
+        # array([4.00003134e-03, 3.16780508e-05, ..]) 
         features.append(tmp)
 
     #hot encoding for applying DL
@@ -93,7 +99,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     Flatten(),
     Dropout(0.5),
     Dense(
-        1,
+        9,
         activation="sigmoid",
         name="output",
     )
@@ -106,7 +112,28 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         metrics=["accuracy"]
     )
     cnn_model.summary()
+    
     '''
+    # Second model (throws a "can't picke RloCK Objects")
+    
+    model_cnn2 = keras.Sequential()
+    model_cnn2.add(keras.layers.Dense(units=27, input_dim=14))
+    model_cnn2.add(keras.layers.Activation('relu'))
+    model_cnn2.add(keras.layers.Dense(units=9))
+    model_cnn2.add(keras.layers.Activation('sigmoid'))
+    opt = keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0, nesterov=False)
+    model_cnn2.compile(loss = 'binary_crossentropy',
+              optimizer = opt,
+              metrics = ['accuracy'])
+    model_cnn2.fit(features, labels, epochs=100, verbose=2)
+    
+    # add a new dimension (Error with )
+    f = np.expand_dims(features, axis=2) 
+    print("features shape: ", f.shape)
+    print("label features: ", labels.shape)
+    
+    cnn_model.fit(f, labels)
+    
     hist_cnn = cnn_model.fit(
     X_train, 
     y_train, 
@@ -114,6 +141,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     epochs=15,
     '''
     # Save model.
+    
     print('Saving model...')
 
     final_model={'model':cnn_model, 'imputer':imputer}
