@@ -19,6 +19,7 @@ from keras.optimizers import Adam
 from keras.models import Sequential
 from keras.layers import Conv1D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
+import keras
 
 import matplotlib.pyplot as plt
 
@@ -86,7 +87,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     # Train the classifier
     sequence_size = features.shape[1]
     n_features=1
-    
+    '''
     cnn_model = Sequential([
     Conv1D(
         filters=8,
@@ -112,6 +113,11 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         metrics=["accuracy"]
     )
     cnn_model.summary()
+    f = np.expand_dims(features, axis=2) 
+    print("features shape: ", f.shape)
+    print("label features: ", labels.shape)
+    
+    cnn_model.fit(f, labels)
     
     '''
     # Second model (throws a "can't picke RloCK Objects")
@@ -125,26 +131,13 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     model_cnn2.compile(loss = 'binary_crossentropy',
               optimizer = opt,
               metrics = ['accuracy'])
-    model_cnn2.fit(features, labels, epochs=100, verbose=2)
-    
-    # add a new dimension (Error with )
-    f = np.expand_dims(features, axis=2) 
-    print("features shape: ", f.shape)
-    print("label features: ", labels.shape)
-    
-    cnn_model.fit(f, labels)
-    
-    hist_cnn = cnn_model.fit(
-    X_train, 
-    y_train, 
-    batch_size=128,
-    epochs=15,
-    '''
+    model_cnn2.fit(features, labels, epochs=100, verbose=2)   
+ 
     # Save model.
     
     print('Saving model...')
 
-    final_model={'model':cnn_model, 'imputer':imputer}
+    final_model={'model':model_cnn2, 'imputer':imputer}
 
     filename = os.path.join(output_directory, 'finalized_model_cnn.sav')
     joblib.dump(final_model, filename, protocol=0)
