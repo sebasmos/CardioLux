@@ -365,7 +365,17 @@ def get_12ECG_features(data, header_data):
                 sex=0
         elif iline.startswith('#Dx'):
             label = iline.split(': ')[1].split(',')[0]
-    
+
+#   Add windowing function
+# 
+#for i in range(data.shape[0]): # tiene tamaño 12
+#        header = headers[i]
+#        window = get_windows(recordings[i],fs,n)
+#        energy, corr, ent_shannon, centroid =   time_features(window, sample_Fs)
+#        feat = np.hstack([energy, corr, ent_shannon, centroid ...])
+#        data.append(feat)
+ #contiene windows para trainingset y c/una de las 12 señales
+#'''
 #   We are only using data from lead1
     peaks,idx = detect_peaks(data[0],sample_Fs,gain_lead[0])
  

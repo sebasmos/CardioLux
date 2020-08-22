@@ -4,6 +4,7 @@ import numpy as np, os, sys
 from scipy.io import loadmat
 from run_12ECG_classifier import load_12ECG_model, run_12ECG_classifier
 
+
 def load_challenge_data(filename):
 
     x = loadmat(filename)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
 
     # Load model.
     print('Loading 12ECG model...')
-    model = load_12ECG_model(model_input)
+    model = load_12ECG_model(model_input)   
 
     # Iterate over files.
     print('Extracting 12ECG features...')

@@ -12,10 +12,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from pathlib import Path
-
+'''
 from keras.models import Sequential
 from keras.layers import Conv1D, LSTM, Dense, Dropout, TimeDistributed
 from keras.optimizers import Adam
+from keras.models import Sequential
+from keras.layers import Conv1D, Flatten, Dense, Dropout
+from keras.optimizers import Adam
+'''
 
 import matplotlib.pyplot as plt
 
@@ -42,6 +46,7 @@ def train_12ECG_classifier(input_directory, output_directory):
         recording, header = load_challenge_data(header_files[i])
         recordings.append(recording)
         headers.append(header)
+    
 
     # Train model.
     print('Training model...')
@@ -52,6 +57,7 @@ def train_12ECG_classifier(input_directory, output_directory):
 
     for i in range(num_files):
         recording = recordings[i]
+        #recording_opened = load_challenge_data(header_files[i])
         header = headers[i]
 
         tmp = get_12ECG_features(recording, header)
@@ -95,6 +101,21 @@ def load_challenge_data(header_file):
     # For testing: 
     # numpy.savetxt("A0001.csv",recording, delimiter=",")
     return recording, header
+# Load data and convert to adequate format for encoding
+def load_challenge_data_encoding(header_file):
+    with open(header_file, 'r') as f:
+        header = f.readlines()
+    mat_file = header_file.replace('.hea', '.mat')
+    x = loadmat(mat_file)
+    recordings_on_arrays = list()
+    recording = np.asarray(x['val'], dtype=np.float64)
+    for i in range(recording.shape[0]):
+        for j in range(recording.shape[1]):
+            recordings_on_arrays.append(recording[i,j])
+    # For testing: 
+    # numpy.savetxt("A0001.csv",recording, delimiter=",")
+    return recordings_on_arrays, header
+
 
 # Find unique classes.
 def get_classes(input_directory, filenames):

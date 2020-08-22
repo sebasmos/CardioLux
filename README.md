@@ -29,7 +29,11 @@ You can run this classifier code by installing the requirements and running
     python driver.py model test_data test_outputs
 
 where `training_data` is a directory of training data files, `model` is a directory of files for the model, `test_data` is the directory of test data files, and `test_outputs` is a directory of classifier outputs.  The [PhysioNet/CinC 2020 webpage](https://physionetchallenges.github.io/2020/) provides a training database with data files and a description of the contents and structure of these files.
-
+## Branch NN_1
+Keras models are saved without imputer and classes variables since they are added within `run_12ECG_classifier.py`
+To run:
+* `python train_model.py "../training_data" "./model" `
+* `python driver.py "NN_1.model/" "../test_data" "../results" `
 ## Submission
 
 The `driver.py`, `get_12ECG_score.py`, and `get_12ECG_features.py` scripts must be in the root path of your repository. If they are inside a folder, then the submission will be unsuccessful.
