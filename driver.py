@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     # Load model.
     print('Loading 12ECG model...')
-    model = load_12ECG_model(model_input)
+    model = load_12ECG_model(model_input)   
 
     # Iterate over files.
     print('Extracting 12ECG features...')

@@ -50,8 +50,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         headers.append(header)
 
     # Train model.
-    print('Training model...')
-    
+    print('Training model...')   
 
     features = list()
     labels = list()
@@ -59,16 +58,9 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     for i in range(num_files):
         recording = recordings[i]
         header = headers[i]
-        # 
-        
-        #tmp = get_12ECG_features_num(recording, header,n)
         tmp = get_12ECG_features(recording, header)
 
-        # features containing set-up values: 
-        
-        # array([4.00003134e-03, 3.16780508e-05, ..]) 
         features.append(tmp)
-        print("features extracted succesfully..")
     #hot encoding for applying DL
         for l in header:
             if l.startswith('#Dx:'):
@@ -78,6 +70,16 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
                     class_index = classes.index(arr.rstrip()) # Only use first positive index
                     labels_act[class_index] = 1
         labels.append(labels_act)
+        
+    print("features extracted succesfully..")
+    
+    labels = np.array(labels)
+    
+    features = np.array(features)
+    
+    # Normalize features for fitting the model
+    
+    features = tf.keras.utils.normalize(features)
 
     # Replace NaN values with mean values
     imputer=SimpleImputer().fit(features)
@@ -163,9 +165,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
               metrics = ['accuracy'])
     model_cnn2.fit(features, labels, epochs=100, verbose=2)   
     print('Saving model...')
-
     final_model={'model':model_cnn2, 'imputer':imputer}
-
     filename = os.path.join(output_directory, 'finalized_model_cnn.sav')
     joblib.dump(final_model, filename, protocol=0)
     '''
