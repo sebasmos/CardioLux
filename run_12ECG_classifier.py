@@ -20,10 +20,9 @@ import keras
 
 import matplotlib.pyplot as plt
 
-def run_12ECG_classifier(data,header_data):
+def run_12ECG_classifier(data,header_data,model):
         
     #Load Keras model    
-    model = load_12ECG_model('NN_1.model/')
     # Load Classes
     classes = ['164884008', '164889003', '164909002', '164931005', '270492004', '284470004', '426783006', '429622005', '59118001']
     # Use your classifier here to obtain a label and score for each class.
@@ -53,6 +52,7 @@ def run_12ECG_classifier(data,header_data):
     current_score=current_score[:,0,1]
     '''
     current_score = current_score.flatten()
+    # convert float32 to float 64 just in case
     return current_label, current_score, classes
 
 def load_12ECG_model(input_directory):
