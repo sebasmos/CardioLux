@@ -4,6 +4,7 @@ import numpy as np, os, sys
 from scipy.io import loadmat
 from run_12ECG_classifier import load_12ECG_model, run_12ECG_classifier
 
+
 def load_challenge_data(filename):
 
     x = loadmat(filename)
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         print('    {}/{}...'.format(i+1, num_files))
         tmp_input_file = os.path.join(input_directory,f)
         data,header_data = load_challenge_data(tmp_input_file)
-        current_label, current_score,classes = run_12ECG_classifier(data,header_data, model)
+        current_label, current_score,classes = run_12ECG_classifier(data,header_data)
         # Save results.
         save_challenge_predictions(output_directory,f,current_score,current_label,classes)
 

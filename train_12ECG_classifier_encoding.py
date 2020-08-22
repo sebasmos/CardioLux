@@ -13,6 +13,8 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+# Import tensorflow and keras libraries
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Conv1D, LSTM, Dense, Dropout, TimeDistributed
 from keras.optimizers import Adam
@@ -66,7 +68,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         
         # array([4.00003134e-03, 3.16780508e-05, ..]) 
         features.append(tmp)
-
+        print("features extracted succesfully..")
     #hot encoding for applying DL
         for l in header:
             if l.startswith('#Dx:'):
@@ -77,9 +79,6 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
                     labels_act[class_index] = 1
         labels.append(labels_act)
 
-    features = np.array(features)
-    labels = np.array(labels)
-
     # Replace NaN values with mean values
     imputer=SimpleImputer().fit(features)
     features=imputer.transform(features)
@@ -87,7 +86,39 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     # Train the classifier
     sequence_size = features.shape[1]
     n_features=1
+    print("training the model")
+    ############# MODEL 1 - NN ######################
+    model = tf.keras.models.Sequential()
+    model.add(tf.keras.layers.Flatten())
+    # use 128 neurons & use relu act func
+    model.add(tf.keras.layers.Dense(128, activation = tf.nn.relu))
+    model.add(tf.keras.layers.Dense(128, activation = tf.nn.relu))
+    # the final output layer must be Dense and must fit # classifications and must use probability distribution instead of an activation function
+    model.add(tf.keras.layers.Dense(9, activation = tf.nn.softmax))
+    
+    # Compile 
+    model.compile(
+    optimizer= 'adam' ,# NN intends to minimize losss, not maximize accuracy
+    loss = 'sparse_categorical_crossentropy',
+    metrics = ['accuracy']
+    )
+    label_final = []
+    
+    # Extract hot-encode format to normal format
+    for i in range(labels.shape[0]):
+        label = labels[i]
+        decoded_labels = decode(label)
+        label_final.append(decoded_labels)
+    # Convert list to np array
+    label_final = np.array(label_final)
+    
+    # Fit the model appropiatelly
+    model.fit(features, label_final, epochs=3)
+    val_loss, val_acc = model.evaluate(features, label_final)
+    print("model is trained")
+    
     '''
+    
     cnn_model = Sequential([
     Conv1D(
         filters=8,
@@ -119,7 +150,6 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     
     cnn_model.fit(f, labels)
     
-    '''
     # Second model (throws a "can't picke RloCK Objects")
     
     model_cnn2 = keras.Sequential()
@@ -132,15 +162,17 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
               optimizer = opt,
               metrics = ['accuracy'])
     model_cnn2.fit(features, labels, epochs=100, verbose=2)   
- 
-    # Save model.
-    
     print('Saving model...')
 
     final_model={'model':model_cnn2, 'imputer':imputer}
 
     filename = os.path.join(output_directory, 'finalized_model_cnn.sav')
     joblib.dump(final_model, filename, protocol=0)
+    '''
+    # Save model.
+    model.save("NN_1.model")
+    
+
 
 # Load challenge data.
 def load_challenge_data(header_file):
@@ -179,3 +211,5 @@ def get_classes(input_directory, filenames):
                     for c in tmp:
                         classes.add(c.strip())
     return sorted(classes)
+def decode(datum):
+    return np.argmax(datum)
