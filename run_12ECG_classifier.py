@@ -39,18 +39,13 @@ def run_12ECG_classifier(data,header_data,model):
     imputer=SimpleImputer().fit(feats_reshape)
     feats_reshape = imputer.transform(feats_reshape)
     
-    current_label = model.predict(feats_reshape)[0]    
+    current_label = model.predict(feats_reshape)[0]  
+    current_label = np.float64(current_label)
     current_label = current_label.astype(int)
     
     # Suppose softmax model 
     probability_model = tf.keras.Sequential([model,tf.keras.layers.Softmax()])  
     current_score = model.predict(feats_reshape)
-    
-    '''
-    current_score = model.predict_proba(feats_reshape)
-    current_score=np.asarray(current_score)
-    current_score=current_score[:,0,1]
-    '''
     current_score = current_score.flatten()
     # convert float32 to float 64 just in case
     return current_label, current_score, classes
