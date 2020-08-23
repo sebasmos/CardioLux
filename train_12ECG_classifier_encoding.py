@@ -59,7 +59,6 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         recording = recordings[i]
         header = headers[i]
         tmp = get_12ECG_features(recording, header)
-
         features.append(tmp)
     #hot encoding for applying DL
         for l in header:
@@ -80,6 +79,17 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     # Normalize features for fitting the model
     
     features = tf.keras.utils.normalize(features)
+    
+    # Label adjustment
+    label_final = []
+    
+    # Extract hot-encode format to normal format
+    for i in range(labels.shape[0]):
+        label = labels[i]
+        decoded_labels = decode(label)
+        label_final.append(decoded_labels)
+    # Convert list to np array
+    label_final = np.array(label_final)
 
     # Replace NaN values with mean values
     imputer=SimpleImputer().fit(features)
@@ -104,16 +114,6 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     loss = 'sparse_categorical_crossentropy',
     metrics = ['accuracy']
     )
-    label_final = []
-    
-    # Extract hot-encode format to normal format
-    for i in range(labels.shape[0]):
-        label = labels[i]
-        decoded_labels = decode(label)
-        label_final.append(decoded_labels)
-    # Convert list to np array
-    label_final = np.array(label_final)
-    
     # Fit the model appropiatelly
     model.fit(features, label_final, epochs=3)
     val_loss, val_acc = model.evaluate(features, label_final)
@@ -171,6 +171,11 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     '''
     # Save model.
     model.save("NN_1.model")
+    # Save imputer to re-load in testing set
+    imputer={'imputer':imputer}
+    filename = os.path.join(output_directory, 'imputer.sav')
+    # Set output_directory as the model folder
+    joblib.dump(imputer, filename, protocol=0) 
     
 
 
