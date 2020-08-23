@@ -39,8 +39,8 @@ def run_12ECG_classifier(data,header_data,model):
     # Evaluate if this is really necesary
     #imputer = SimpleImputer().fit(feats_reshape) # instead of this use the trained imputer
     feats_reshape = imputer.transform(feats_reshape)
-    
-    prediction = model.predict(feats_reshape)[0]  
+    feats_reshape = np.expand_dims(feats_reshape, axis=2)
+    prediction = model.predict(feats_reshape)
     prediction = np.float64(prediction)
     prediction = np.argmax(prediction)
     encoded = to_categorical(prediction)
@@ -55,17 +55,8 @@ def run_12ECG_classifier(data,header_data,model):
 
 def load_12ECG_model(input_directory):
     # Tensorflow & keras model saving mode
-    name = 'NN_1.model'
+    name = 'CNN_1.model'
     model = tf.keras.models.load_model(input_directory)
     return model
-    '''
-    # load the model from disk 
-    f_out='finalized_model.sav'
-    
-    filename = os.path.join(input_directory,f_out)
 
-    loaded_model = joblib.load(filename)
-    #model = load_model('saved_model.sav')
-    return loaded_model
-    '''
     

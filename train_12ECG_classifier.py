@@ -88,53 +88,20 @@ def train_12ECG_classifier(input_directory, output_directory):
     
     features = tf.keras.utils.normalize(features)
     
-    # Label adjustment
-    label_final = []
-    
-    # Extract hot-encode format to normal format
-    for i in range(labels.shape[0]):
-        label = labels[i]
-        decoded_labels = decode(label)
-        label_final.append(decoded_labels)
-    # Convert list to np array
-    label_final = np.array(label_final)
-
-    # Replace NaN values with mean values
     imputer=SimpleImputer().fit(features)
     features=imputer.transform(features)
-
-    # Train the classifier
+    
+    feat_cnn = np.expand_dims(features, axis=2)
+    
     sequence_size = features.shape[1]
     n_features=1
     
-    print("training the model")
-    ############# MODEL 1 - NN ######################
-    model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Flatten())
-    # use 128 neurons & use relu act func
-    model.add(tf.keras.layers.Dense(128, activation = tf.nn.relu))
-    model.add(tf.keras.layers.Dense(128, activation = tf.nn.relu))
-    # the final output layer must be Dense and must fit # classifications and must use probability distribution instead of an activation function
-    model.add(tf.keras.layers.Dense(9, activation = tf.nn.softmax))
-    
-    # Compile 
-    model.compile(
-    optimizer= 'adam' ,# NN intends to minimize losss, not maximize accuracy
-    loss = 'sparse_categorical_crossentropy',
-    metrics = ['accuracy']
-    )
-    # Fit the model appropiatelly
-    model.fit(features, label_final, epochs=3)
-    val_loss, val_acc = model.evaluate(features, label_final)
-    print("model is trained")
-    
-    '''    
-    cnn_model = Sequential([
+    model = Sequential([
     Conv1D(
-        filters=8,
+        filters=1,
         kernel_size=4,
         strides=1,
-        input_shape=(sequence_size, n_features),
+        input_shape=(14, 1),
         padding="same",
         activation="relu"
     ),
@@ -148,43 +115,23 @@ def train_12ECG_classifier(input_directory, output_directory):
     ])
     optimizer = Adam(lr=0.001)
     # Compiling the model
-    cnn_model.compile(
+    model.compile(
         optimizer=optimizer,
         loss="binary_crossentropy",
         metrics=["accuracy"]
     )
-    cnn_model.summary()
-    f = np.expand_dims(features, axis=2) 
-    print("features shape: ", f.shape)
-    print("label features: ", labels.shape)
+    model.summary()
     
-    cnn_model.fit(f, labels)
-    
-    # Second model (throws a "can't picke RloCK Objects")
-    
-    model_cnn2 = keras.Sequential()
-    model_cnn2.add(keras.layers.Dense(units=27, input_dim=14))
-    model_cnn2.add(keras.layers.Activation('relu'))
-    model_cnn2.add(keras.layers.Dense(units=9))
-    model_cnn2.add(keras.layers.Activation('sigmoid'))
-    opt = keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0, nesterov=False)
-    model_cnn2.compile(loss = 'binary_crossentropy',
-              optimizer = opt,
-              metrics = ['accuracy'])
-    model_cnn2.fit(features, labels, epochs=100, verbose=2)   
-    print('Saving model...')
-    final_model={'model':model_cnn2, 'imputer':imputer}
-    filename = os.path.join(output_directory, 'finalized_model_cnn.sav')
-    joblib.dump(final_model, filename, protocol=0)
-    '''
+    model.fit(feat_cnn, labels,  epochs=15, batch_size=10,  verbose=2)
+
     # Save model.
-    model.save("NN_1.model")
+    model.save("CNN_1.model")
     # Save imputer to re-load in testing set
     imputer={'imputer':imputer}
     filename = os.path.join(output_directory, 'imputer.sav')
     # Set output_directory as the model folder
     joblib.dump(imputer, filename, protocol=0) 
-    
+    print("working well ")
 
 
 # Load challenge data.
