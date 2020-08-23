@@ -5,6 +5,7 @@ from scipy.io import loadmat
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from get_12ECG_features import get_12ECG_features
+from get_12ECG_features import fun_extract_data
 
 import pandas as pd
 import numpy as np
@@ -59,8 +60,11 @@ def train_12ECG_classifier(input_directory, output_directory):
         recording = recordings[i]
         #recording_opened = load_challenge_data(header_files[i])
         header = headers[i]
-
-        tmp = get_12ECG_features(recording, header)
+        
+        #tmp = fun_extract_data(recording)
+        tmp = get_12ECG_featuress(recording, header)
+        
+        print("Extracted feature Number: ",i,"/4813")
         features.append(tmp)
 
     #hot encoding for applying DL

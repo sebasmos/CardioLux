@@ -11,6 +11,12 @@ import scipy.integrate as integrate
 import scipy.fftpack as ff
 import matplotlib.pyplot as plt
 
+# Import features 
+import fun_features
+import fun_windows
+import fun_cosEn
+import numpy as np
+
 def detect_peaks(ecg_measurements,signal_frequency,gain):
 
         """
@@ -338,6 +344,23 @@ def COSen(data, m):
 
 
 #### END OF ADDING FEATURES ####
+def fun_extract_data(data):
+    fs = 500
+    features = []
+    for i in data:
+        windows = fun_windows.window_fun2(i, fs, m=5)  # m: Peaks number
+        for j in windows:
+            fea1, fea2, fea3, fea4, fea5, fea6 = fun_features.qrs_features(j, fs)
+            fea7, fea8, fea9 = fun_features.frecuency_features(j, fs)
+            #fea10 = fun_cosEn.cos_en(j)
+            fea11, fea12, fea13, fea14 = fun_features.time_features(j, fs)
+            #features_1 = [fea1, fea2, fea3, fea4, fea5, fea6, fea7, fea8, fea9, fea10, fea11, fea12, fea13, fea14]
+            # for testing: ARRANGE FEAT 10!!!!
+            features_1 = [fea1, fea2]
+            features.append(features_1)
+    features = np.array(features)
+    feats_reshape = features.reshape(1, -1)
+    return feats_reshape
 
 def get_12ECG_features(data, header_data):
 
@@ -395,6 +418,7 @@ def get_12ECG_features(data, header_data):
     #m = 30
    # cosen = COSen(data[0], m)
 #   mean
+    fea1, fea2, fea3, fea4, fea5, fea6 = fun_features.qrs_features(data[0], sample_Fs)
     mean_RR = np.mean(idx/sample_Fs*1000)
     mean_Peaks = np.mean(peaks*gain_lead[0])
 
@@ -422,7 +446,7 @@ def get_12ECG_features(data, header_data):
 
 
 
-    features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks])
+    features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks, fea1, fea2, fea3, fea4, fea5, fea6])
 
   
     return features

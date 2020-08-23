@@ -5,6 +5,7 @@ from scipy.io import loadmat
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from get_12ECG_features import get_12ECG_features
+from get_12ECG_features import fun_extract_data 
 
 import pandas as pd
 import numpy as np
@@ -24,6 +25,8 @@ from keras.optimizers import Adam
 import keras
 
 import matplotlib.pyplot as plt
+
+
 
 def train_12ECG_classifier_encoding(input_directory, output_directory):
     # Load data.
@@ -54,13 +57,16 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
 
     features = list()
     labels = list()
+    
+    # 4813 training tests 
 
     for i in range(num_files):
         recording = recordings[i]
         header = headers[i]
+        #tmp = fun_extract_data(recording)
         tmp = get_12ECG_features(recording, header)
-
         features.append(tmp)
+        print("extracting feature number: ", i, "/4813")
     #hot encoding for applying DL
         for l in header:
             if l.startswith('#Dx:'):
@@ -73,9 +79,10 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
         
     print("features extracted succesfully..")
     
-    labels = np.array(labels)
     
-    features = np.array(features)
+    labels = np.array(labels) # 4813
+    
+    features = np.array(features) # 4813 x 14
     
     # Normalize features for fitting the model
     
