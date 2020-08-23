@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import numpy as np, os, sys
+from numpy import array
+from numpy import argmax
 import joblib
 import numpy as np, os, sys, joblib
 from scipy.io import loadmat
@@ -17,20 +19,17 @@ from keras.models import Sequential
 from keras.layers import Conv1D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 import keras
+# conver to hot-encode
+from keras.utils import to_categorical
 
 import matplotlib.pyplot as plt
 
 def run_12ECG_classifier(data,header_data,model):
         
-    #Load Keras model    
     # Load Classes
     classes = ['164884008', '164889003', '164909002', '164931005', '270492004', '284470004', '426783006', '429622005', '59118001']
     imputer = joblib.load('./model/imputer.sav')
     imputer = imputer['imputer']
-    # Use your classifier here to obtain a label and score for each class.
-    # model = loaded_model['model']
-    # imputer = loaded_model['imputer']
-    # classes = loaded_model['classes']
 
     features=np.asarray(get_12ECG_features(data,header_data))    
     
@@ -41,9 +40,11 @@ def run_12ECG_classifier(data,header_data,model):
     #imputer = SimpleImputer().fit(feats_reshape) # instead of this use the trained imputer
     feats_reshape = imputer.transform(feats_reshape)
     
-    current_label = model.predict(feats_reshape)[0]  
-    current_label = np.float64(current_label)
-    current_label = current_label.astype(int)
+    prediction = model.predict(feats_reshape)[0]  
+    prediction = np.float64(prediction)
+    prediction = np.argmax(prediction)
+    encoded = to_categorical(prediction)
+    current_label = encoded.astype(int)
     
     # Suppose softmax model 
     probability_model = tf.keras.Sequential([model,tf.keras.layers.Softmax()])  
