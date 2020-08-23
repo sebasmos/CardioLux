@@ -119,8 +119,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     val_loss, val_acc = model.evaluate(features, label_final)
     print("model is trained")
     
-    '''
-    
+    '''    
     cnn_model = Sequential([
     Conv1D(
         filters=8,
