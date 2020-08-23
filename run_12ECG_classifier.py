@@ -25,10 +25,12 @@ def run_12ECG_classifier(data,header_data,model):
     #Load Keras model    
     # Load Classes
     classes = ['164884008', '164889003', '164909002', '164931005', '270492004', '284470004', '426783006', '429622005', '59118001']
+    imputer = joblib.load('./model/imputer.sav')
+    imputer = imputer['imputer']
     # Use your classifier here to obtain a label and score for each class.
-   # model = loaded_model['model']
-   # imputer = loaded_model['imputer']
-    #classes = loaded_model['classes']
+    # model = loaded_model['model']
+    # imputer = loaded_model['imputer']
+    # classes = loaded_model['classes']
 
     features=np.asarray(get_12ECG_features(data,header_data))    
     
@@ -36,7 +38,7 @@ def run_12ECG_classifier(data,header_data,model):
     features = tf.keras.utils.normalize(features)
     feats_reshape = features.reshape(1, -1)
     # Evaluate if this is really necesary
-    imputer=SimpleImputer().fit(feats_reshape)
+    #imputer = SimpleImputer().fit(feats_reshape) # instead of this use the trained imputer
     feats_reshape = imputer.transform(feats_reshape)
     
     current_label = model.predict(feats_reshape)[0]  
