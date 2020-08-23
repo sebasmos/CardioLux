@@ -101,7 +101,7 @@ def train_12ECG_classifier(input_directory, output_directory):
         filters=1,
         kernel_size=4,
         strides=1,
-        input_shape=(14, 1),
+        input_shape=(27, 1),
         padding="same",
         activation="relu"
     ),
