@@ -2,6 +2,12 @@
 1. Training set is - CPSC2018 training set, 6,877 recordings: link; MD5-hash: 7b6b1f1ab1b4c59169c639d379575a87 and can be downloaded here: https://storage.cloud.google.com/physionet-challenge-2020-12-lead-ecg-public/PhysioNetChallenge2020_Training_CPSC.tar.gz
 2. Evaluation files: https://github.com/physionetchallenges/evaluation-2020
 
+# Run as:
+Please to run our code please change the second model folder by CNN_1.model, since keras library only allowed us to save it in this addresss.Thank you: 
+
+* `python train_model.py "../training_data" "./model" `
+* `python driver.py "CNN_1.model/" "../test_data" "../results" `
+
 ## Contents
 
 ## From Windows/Linux, Compile as - inside the main code folder: 
