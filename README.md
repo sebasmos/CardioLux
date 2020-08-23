@@ -34,6 +34,9 @@ Keras models are saved without imputer and classes variables since they are adde
 To run:
 * `python train_model.py "../training_data" "./model" `
 * `python driver.py "NN_1.model/" "../test_data" "../results" `
+Inside of ./model we will save the imputer, which will contain relevant information regarding the features from the trained model and that shall be used inside the testing set
+## Branch windowing
+This branch contains the `fun_extract_data` which contains a windowing functionality with non-linear features
 ## Submission
 
 The `driver.py`, `get_12ECG_score.py`, and `get_12ECG_features.py` scripts must be in the root path of your repository. If they are inside a folder, then the submission will be unsuccessful.
