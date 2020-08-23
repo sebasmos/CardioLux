@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os, sys
-from train_12ECG_classifier_encoding import train_12ECG_classifier_encoding
-#from train_12ECG_classifier import train_12ECG_classifier
+from train_12ECG_classifier import train_12ECG_classifier
 
 if __name__ == '__main__':
     # Parse arguments.
@@ -13,6 +12,6 @@ if __name__ == '__main__':
 
     print('Running training code...')
 
-    train_12ECG_classifier_encoding(input_directory, output_directory)
+    train_12ECG_classifier(input_directory, output_directory)
 
     print('Done.')

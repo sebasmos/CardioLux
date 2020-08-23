@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 
 
 
-def train_12ECG_classifier_encoding(input_directory, output_directory):
+def train_12ECG_classifier(input_directory, output_directory):
     # Load data.
     print('Loading data...')
 
@@ -106,6 +106,7 @@ def train_12ECG_classifier_encoding(input_directory, output_directory):
     # Train the classifier
     sequence_size = features.shape[1]
     n_features=1
+    
     print("training the model")
     ############# MODEL 1 - NN ######################
     model = tf.keras.models.Sequential()
