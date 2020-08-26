@@ -3,15 +3,12 @@
 import numpy as np, os, sys, joblib
 from scipy.io import loadmat
 from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestClassifier
 from get_12ECG_features import get_12ECG_features
 from get_12ECG_features import fun_extract_data 
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
 from pathlib import Path
 
 # Import tensorflow and keras libraries
@@ -23,9 +20,6 @@ from keras.models import Sequential
 from keras.layers import Conv1D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 import keras
-
-import matplotlib.pyplot as plt
-
 
 
 def train_12ECG_classifier(input_directory, output_directory):

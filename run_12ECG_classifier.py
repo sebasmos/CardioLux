@@ -7,7 +7,6 @@ import joblib
 import numpy as np, os, sys, joblib
 from scipy.io import loadmat
 from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestClassifier
 from get_12ECG_features import get_12ECG_features
 
 # Import tensorflow and keras libraries

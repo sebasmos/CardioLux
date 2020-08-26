@@ -4,12 +4,10 @@ import numpy as np
 from scipy.signal import butter, lfilter
 from scipy import stats
 from scipy import signal
-import pywt
 from scipy.misc import electrocardiogram
 from scipy import signal
 import scipy.integrate as integrate
 import scipy.fftpack as ff
-import matplotlib.pyplot as plt
 
 # Import features 
 import fun_features
@@ -150,11 +148,11 @@ def findpeaks(data, spacing=1, limit=None):
         if limit is not None:
             ind = ind[data[ind] > limit]
         return ind
-
+'''
 def WaveletFeat(ecg_measurements,signal_frequency,gain):
-    ''' Wavelet extraction process is advanced  for trying to describe Premature
+ Wavelet extraction process is advanced  for trying to describe Premature
     Ventricular Complex Arrhythmia, seems like the best results were verified
-    with db2 wavelet mother'''
+    with db2 wavelet mother
     cA, cD = pywt.dwt(ecg_measurements,'db2')
     
    # print("1. Wavelet features are: ", cA[1:5])
@@ -163,10 +161,12 @@ def WaveletFeat(ecg_measurements,signal_frequency,gain):
     
     phi, psi, x = wavelet.wavefun(level=5)
     
-    return gain*2    
+    return gain*2  
+'''  
 
 ## FUNCIONES PARA AGREGAR AL MODELO ####
-    '''
+
+'''
 1. r_peak_mean: Pico R
 2. h_rate: Heart rate (bpm)
 3. rr_interval: RR interval
