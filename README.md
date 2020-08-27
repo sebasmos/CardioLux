@@ -3,10 +3,10 @@
 2. Evaluation files: https://github.com/physionetchallenges/evaluation-2020
 
 # Run as:
-Please to run our code please change the second model folder by CNN_1.model, since keras library only allowed us to save it in this addresss.Thank you: 
+Please to run our code please change the second model folder by CNN_1.model, since keras library only allowed us to save it in this address.Thank you very much in advance: 
 
 * `python train_model.py "../training_data" "./model" `
-* `python driver.py "CNN_1.model/" "../test_data" "../results" `
+* `python driver.py "CNN_1.model" "../test_data" "../results" `
 
 ## Contents
 

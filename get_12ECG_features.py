@@ -421,7 +421,7 @@ def get_12ECG_features(data, header_data):
     
     fea1, fea2, fea3, fea4, fea5, fea6 = fun_features.qrs_features(data[0], sample_Fs)
     fea7, fea8, fea9 = fun_features.frecuency_features(data[0], sample_Fs)
-    # fea10 = fun_cosEn.cos_en(data[0])
+    #fea10 = fun_cosEn.cos_en(data[0])
     fea11, fea12, fea13, fea14 = fun_features.time_features(data[0],sample_Fs)
     mean_RR = np.mean(idx/sample_Fs*1000)
     mean_Peaks = np.mean(peaks*gain_lead[0])

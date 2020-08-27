@@ -15,7 +15,6 @@ from pathlib import Path
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Conv1D, LSTM, Dense, Dropout, TimeDistributed
-from keras.optimizers import Adam
 from keras.models import Sequential
 from keras.layers import Conv1D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
