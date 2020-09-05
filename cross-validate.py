@@ -25,6 +25,7 @@ import keras
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import ShuffleSplit
 
 
 # Functions from trainer
@@ -97,10 +98,12 @@ def cross(input_directory, output_directory):
     '''
     # create model
     model = KerasClassifier(build_fn=create_model, epochs=150, batch_size=10, verbose=0)
-    # evaluate using 10-fold cross validation
-    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
-    results = cross_val_score(model, features, labels, cv=kfold)
-    print(results.mean())
+
+    n_samples = features.shape[0]
+    cv = ShuffleSplit(n_splits = 5, test_size = 0.3, random_state = 0)
+    feat_cnn = np.expand_dims(features, axis=2) 
+    a = cross_val_score(model, feat_cnn, labels, cv=cv)
+    print("Validación cruzada: ", a.mean())
 
 
 def decode(datum):
