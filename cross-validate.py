@@ -99,7 +99,7 @@ def cross(input_directory, output_directory):
     model = KerasClassifier(build_fn=create_model, epochs=150, batch_size=10, verbose=0)
     # evaluate using 10-fold cross validation
     kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
-    results = cross_val_score(model, features, label_final, cv=kfold)
+    results = cross_val_score(model, features, labels, cv=kfold)
     print(results.mean())
 
 
