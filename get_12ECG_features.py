@@ -85,7 +85,7 @@ def detect_peaks(ecg_measurements,signal_frequency,gain):
 
 
         # Squaring - intensifies values received in derivative.
-        squared_ecg_measurements = ecg_measurements ** 2
+        squared_ecg_measurements = differentiated_ecg_measurements ** 2
 
         # Moving-window integration.
         integrated_ecg_measurements = np.convolve(squared_ecg_measurements, np.ones(integration_window)/integration_window)
@@ -419,10 +419,10 @@ def get_12ECG_features(data, header_data):
    # cosen = COSen(data[0], m)
 #   mean
     
-    #fea1, fea2, fea3, fea4, fea5, fea6 = fun_features.qrs_features(data[0], sample_Fs)
-    #fea7, fea8, fea9 = fun_features.frecuency_features(data[0], sample_Fs)
+    fea1, fea2, fea3, fea4, fea5, fea6 = fun_features.qrs_features(data[0], sample_Fs)
+    fea7, fea8, fea9 = fun_features.frecuency_features(data[0], sample_Fs)
     #fea10 = fun_cosEn.cos_en(data[0])
-    #fea11, fea12, fea13, fea14 = fun_features.time_features(data[0],sample_Fs)
+    fea11, fea12, fea13, fea14 = fun_features.time_features(data[0],sample_Fs)
     mean_RR = np.mean(idx/sample_Fs*1000)
     mean_Peaks = np.mean(peaks*gain_lead[0])
 
@@ -450,9 +450,9 @@ def get_12ECG_features(data, header_data):
 
 
 
-    #features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks, fea1, fea2, fea3, fea4, fea5, fea6, fea7, fea8, fea9, fea11, fea12, fea13, fea14 ])
+    features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks, fea1, fea2, fea3, fea4, fea5, fea6, fea7, fea8, fea9, fea11, fea12, fea13, fea14 ])
 
-    features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks])
+    #features = np.hstack([age,sex,mean_RR,mean_Peaks,median_RR,median_Peaks,std_RR,std_Peaks,var_RR,var_Peaks,skew_RR,skew_Peaks,kurt_RR,kurt_Peaks])
 
     return features
 
