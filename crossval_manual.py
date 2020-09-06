@@ -6,7 +6,7 @@ import fnmatch
 from train_12ECG_classifier import train_12ECG_classifier
 # data folder contains dataset (hea + mat)
 
-k = 5
+k = 10
 
 shutil.copytree('../dataset', 'temp')
 headers = fnmatch.filter(os.listdir('temp'), "*.hea")
@@ -24,36 +24,34 @@ for i in range(0, k): # Creates folds
         shutil.move(f"temp/{file}", 'fold_%s' % (i))
         shutil.move(f"temp/{file.replace('.hea','.mat')}", 'fold_%s' % (i))
 
-os.rmdir('temp')
+# os.rmdir('temp')
 
 os.mkdir('output')
 
 for i in range(0, k):    
-    os.mkdir('training') # Temporal training folder
-    shutil.copytree('fold_%s' % (i), 'test') # Copies i fold to test folder
+    os.mkdir('training_%s' % (i)) # Temporal training folder
+    shutil.copytree('fold_%s' % (i), 'test_%s' % (i)) # Copies i fold to test folder
     
     for j in range(0, k):
         if j != i:
             files = os.listdir('fold_%s' % (j))
             for file in files:
-                shutil.copy(f"fold_{j}/{file}", 'training')
+                shutil.copy(f"fold_{j}/{file}", f"training_{i}/{file}")
      
-    os.system('python train_model.py "training" "./model"') 
-    os.system('python driver.py "CNN_1.model" "test" "output"') 
+    os.system('python train_model.py "training_%s" "./model"' % (i)) 
+    os.system('python driver.py "CNN_1.model" "test_%s" "output"' % (i)) 
      #python driver.py "CNN_1.model" "test" "../results" `
      #train_model "training" "./model"
      #train_12ECG_classifier("training", "./model")# Call training.py with training folder to train the model. This should update the model
      #driver "CNN_1.model" "test" "../output"
      #driver('test', 'output') # Call driver with test and output folder
     # Run evaluation code on output folder
-    os.system('python evaluate_12ECG_score.py "test" "output" scores_%s.csv' % (i))   
-    shutil.rmtree('test')
-    shutil.rmtree('training')
+    # os.system('python evaluate_12ECG_score.py "test" "output" scores_%s.csv' % (i))   
+    # shutil.rmtree('test')
+    # shutil.rmtree('training')
 
  
-
-
 # Cleaning
-for i in range(0, k):
-    shutil.rmtree('fold_%s' % (i))
+# for i in range(0, k):
+#     shutil.rmtree('fold_%s' % (i))
 #os.rmdir('output')
