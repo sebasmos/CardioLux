@@ -1,16 +1,18 @@
 #!/usr/bin/env python
+import os, sys
 
 import numpy as np, os, sys, joblib
 from scipy.io import loadmat
+import numpy
 from sklearn.impute import SimpleImputer
 from get_12ECG_features import get_12ECG_features
 from get_12ECG_features import fun_extract_data 
 
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 
+from train_12ECG_classifier import get_classes, load_challenge_data
 # Import tensorflow and keras libraries
 import tensorflow as tf
 from keras.models import Sequential
@@ -19,20 +21,22 @@ from keras.models import Sequential
 from keras.layers import Conv1D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 import keras
+# cross validation
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import ShuffleSplit
 
 
-def train_12ECG_classifier(input_directory, output_directory):
-    # Load data.
-    print('Loading data...')
-
+# Functions from trainer
+from train_12ECG_classifier import get_classes, load_challenge_data
+def cross(input_directory, output_directory):
+    print("Reading files")
     header_files = []
     for f in os.listdir(input_directory):
         g = os.path.join(input_directory, f)
         if not f.lower().startswith('.') and f.lower().endswith('hea') and os.path.isfile(g):
             header_files.append(g)
-
-    # get_classes determines 9 unique classes for the entire
-    # annotated dataset
     classes = get_classes(input_directory, header_files)
     num_classes = len(classes)
     
@@ -44,9 +48,6 @@ def train_12ECG_classifier(input_directory, output_directory):
         recording, header = load_challenge_data(header_files[i])
         recordings.append(recording)
         headers.append(header)
-
-    # Train model.
-    print('Training model...')   
 
     features = list()
     labels = list()
@@ -77,24 +78,48 @@ def train_12ECG_classifier(input_directory, output_directory):
     
     features = np.array(features) # 4813 x 14
     
-    # Normalize features for fitting the model
-    
     features = tf.keras.utils.normalize(features)
     
     imputer=SimpleImputer().fit(features)
     features=imputer.transform(features)
+    print(labels.shape)
+    print(features.shape)
+    # fix random seed for reproducibility
+    seed = 7
+    numpy.random.seed(seed)
+    '''
+    for i in range(labels.shape[0]):
+        label = labels[i]
+        decoded_labels = decode(label)
+        label_final.append(decoded_labels)
+    # Convert list to np array
+    label_final = np.array(label_final)
+    label_final = np.uint8(label_final)
+    '''
+    # create model
+    model = KerasClassifier(build_fn=create_model, epochs=150, batch_size=10, verbose=0)
+
+    n_samples = features.shape[0]
+    cv = ShuffleSplit(n_splits = 5, test_size = 0.3, random_state = 0)
+    feat_cnn = np.expand_dims(features, axis=2) 
+    a = cross_val_score(model, feat_cnn, labels, cv=cv)
+    print("Validación cruzada: ", a.mean())
+
+
+def decode(datum):
+    return np.argmax(datum)
+label_final = []
     
-    feat_cnn = np.expand_dims(features, axis=2)
-    
-    sequence_size = features.shape[1]
-    n_features=1
-    
+
+def create_model():
+    #createmodel
+
     model = Sequential([
     Conv1D(
         filters=1,
         kernel_size=4,
         strides=1,
-        input_shape=(sequence_size, 1),
+        input_shape=(27, 1),
         padding="same",
         activation="relu"
     ),
@@ -114,55 +139,24 @@ def train_12ECG_classifier(input_directory, output_directory):
         metrics=["accuracy"]
     )
     model.summary()
+    return model
     
-    model.fit(feat_cnn, labels,  epochs=15, batch_size=10,  verbose=2)
 
-    # Save model.
-    model.save("CNN_1.model")
-    # Save imputer to re-load in testing set
-    imputer={'imputer':imputer}
-    filename = os.path.join(output_directory, 'imputer.sav')
-    # Set output_directory as the model folder
-    joblib.dump(imputer, filename, protocol=0) 
-    print("working well ")
+    
+    
+if __name__ == '__main__':
+    # Parse arguments.
+    # input_directory = sys.argv[1]
+    input_directory = "../dataset"
+    #output_directory = sys.argv[2]
+    output_directory = "./results"
 
+    if not os.path.isdir(output_directory):
+        os.mkdir(output_directory)
 
-# Load challenge data.
-def load_challenge_data(header_file):
-    with open(header_file, 'r') as f:
-        header = f.readlines()
-    mat_file = header_file.replace('.hea', '.mat')
-    x = loadmat(mat_file)
-    recording = np.asarray(x['val'], dtype=np.float64)
-    # For testing: 
-    # numpy.savetxt("A0001.csv",recording, delimiter=",")
-    return recording, header
-# Load data and convert to adequate format for encoding
-def load_challenge_data_encoding(header_file):
-    with open(header_file, 'r') as f:
-        header = f.readlines()
-    mat_file = header_file.replace('.hea', '.mat')
-    x = loadmat(mat_file)
-    recordings_on_arrays = list()
-    recording = np.asarray(x['val'], dtype=np.float64)
-    for i in range(recording.shape[0]):
-        for j in range(recording.shape[1]):
-            recordings_on_arrays.append(recording[i,j])
-    # For testing: 
-    # numpy.savetxt("A0001.csv",recording, delimiter=",")
-    return recordings_on_arrays, header
+    print('Running cross-validation code...')
 
+    cross(input_directory, output_directory)
 
-# Find unique classes.
-def get_classes(input_directory, filenames):
-    classes = set()
-    for filename in filenames:
-        with open(filename, 'r') as f:
-            for l in f:
-                if l.startswith('#Dx'):
-                    tmp = l.split(': ')[1].split(',')
-                    for c in tmp:
-                        classes.add(c.strip())
-    return sorted(classes)
-def decode(datum):
-    return np.argmax(datum)
+    print('Done.')
+
