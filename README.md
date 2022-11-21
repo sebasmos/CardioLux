@@ -1,4 +1,4 @@
-# Cardiolux
+# Cardiolux: ECG Arrhythmia Classification Using Non-Linear Features and Convolutional Neural Networks
 1. Training set is - CPSC2018 training set, 6,877 recordings: link; MD5-hash: 7b6b1f1ab1b4c59169c639d379575a87 and can be downloaded here: https://storage.cloud.google.com/physionet-challenge-2020-12-lead-ecg-public/PhysioNetChallenge2020_Training_CPSC.tar.gz
 2. Evaluation files: https://github.com/physionetchallenges/evaluation-2020
 
@@ -45,11 +45,17 @@ To run:
 Inside of ./model we will save the imputer, which will contain relevant information regarding the features from the trained model and that shall be used inside the testing set
 ## Branch windowing
 This branch contains the `fun_extract_data` which contains a windowing functionality with non-linear features
-## Submission
 
-The `driver.py`, `get_12ECG_score.py`, and `get_12ECG_features.py` scripts must be in the root path of your repository. If they are inside a folder, then the submission will be unsuccessful.
+### Please cite as:
 
-## Details
-
-See the [PhysioNet/CinC 2020 webpage](https://physionetchallenges.github.io/2020/) for more details, including instructions for the other files in this repository.
+```
+@inproceedings{cajas2020ecg,
+  title={ECG Arrhythmia Classification Using Non-Linear Features and Convolutional Neural Networks},
+  author={Cajas, Sebasti{\'a}n and Astaiza, Pedro and Garcia-Chicangana, David Santiago and Segura, Camilo and Lop{\'e}z, Diego M},
+  booktitle={2020 Computing in Cardiology},
+  pages={1--4},
+  year={2020},
+  organization={IEEE}
+}
+```
 
