@@ -1,4 +1,5 @@
 # Cardiolux: ECG Arrhythmia Classification Using Non-Linear Features and Convolutional Neural Networks
+[[Paper](https://ieeexplore.ieee.org/abstract/document/9344175)]
 1. Training set is - CPSC2018 training set, 6,877 recordings: link; MD5-hash: 7b6b1f1ab1b4c59169c639d379575a87 and can be downloaded here: https://storage.cloud.google.com/physionet-challenge-2020-12-lead-ecg-public/PhysioNetChallenge2020_Training_CPSC.tar.gz
 2. Evaluation files: https://github.com/physionetchallenges/evaluation-2020
 
